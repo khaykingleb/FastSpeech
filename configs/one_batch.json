@@ -4,8 +4,13 @@
     "seed": 42,
     "n_gpu": 1,
     "verbose": true,
+    "use_colab": false,
     "use_wandb": true,
     "wandb_project_name": "tts_one_batch"
+  }, 
+  "data": {
+    "wav_path": "data/LJSpeech-1.1/wavs",
+    "metadata_path": "data/LJSpeech-1.1/metadata.csv"
   },
   "preprocessing": {
     "sr": 22050,
@@ -21,6 +26,10 @@
         "pad_value": -11.5129251
       }
     }
+  },
+  "trainer" : {
+    "train_ratio": 0.9,
+    "batch_size": 32
   },
   
   
@@ -77,44 +86,6 @@
       "gru_num_layers": 3
     }
   },
-  "data": {
-    "train": {
-      "batch_size": 32,
-      "num_workers": 10,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "train-clean-360"
-          }
-        }
-      ]
-    },
-    "val": {
-      "batch_size": 32,
-      "num_workers": 10,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "dev-clean"
-          }
-        }
-      ]
-    },
-    "test": {
-      "batch_size": 32,
-      "num_workers": 10,
-      "datasets": [
-        {
-          "type": "LibrispeechDataset",
-          "args": {
-            "part": "test-clean"
-          }
-        }
-      ]
-    }
-  },
   "optimizer": {
     "type": "Adam",
     "args": {
@@ -145,7 +116,7 @@
       "T_0": 2000
     }
   },
-  "trainer": {
+  "trainerrrr": {
     "epochs": 150,
     "save_dir": "ASR/saved/",
     "save_period": 5,

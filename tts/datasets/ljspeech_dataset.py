@@ -6,7 +6,8 @@ class LJSpeechDataset(torchaudio.datasets.LJSPEECH):
 
     def __init__(self, root):
         super().__init__(root=root)
-        self.tokenizer = torchaudio.pipelines.TACOTRON2_GRIFFINLIM_CHAR_LJSPEECH.get_text_processor()
+        #TODO: Использую фонемы, а не чары
+        self.tokenizer = torchaudio.pipelines.TACOTRON2_WAVERNN_PHONE_LJSPEECH.get_text_processor()
 
     def __getitem__(self, index: int):
         waveform, _, _, transcript = super().__getitem__(index)
@@ -24,6 +25,6 @@ class LJSpeechDataset(torchaudio.datasets.LJSPEECH):
                 for token in tokens_[:length]
             ])
             result.append(text)
-            
+
         return result
                 

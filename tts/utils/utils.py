@@ -3,8 +3,7 @@ import os
 import numpy as np
 import torch
 
-def seed_everything(config):
-    seed = config["main"]["seed"]
+def seed_everything(seed: int = 42) -> None:
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
@@ -14,4 +13,3 @@ def seed_everything(config):
     torch.backends.cudnn.enabled = False
     torch.backends.cudnn.deterministic = True
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:2"
-    

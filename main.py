@@ -1,56 +1,96 @@
 from pathlib import Path
 import argparse
-import wandb
 import json
 
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore")
 
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset, random_split
 import torch
 
 from tts.collate_fn import LJSpeechCollator
+from tts.spectrogram import MelSpectrogram
 from tts.datasets import LJSpeechDataset
+import tts.models as acoustic_module_arch
+from tts.aligner import GraphemeAligner
+from tts.vocoders import WaveGlow
+from tts.loggers import Wandb
 from tts.utils import *
 
 
-
 def main(config) -> None:
-    seed_everything(config["main"]["seed"])
+    if config["logger"]["use_wandb"]:
+        logger = Wandb(config)
 
-    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    seed_everything(config)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if config["main"]["verbose"]:
-        print(f"The training process will be performed on {DEVICE}.")
+        print(f"The training process will be performed on {device}.")
     
-    DATA_DIR = "Text-to-Speech/data" if config["main"]["use_colab"] is True else "./data"
-    full_dataset = LJSpeechDataset(DATA_DIR)
+    if config["main"]["verbose"]:
+        print("Downloading and splitting the data.")
 
-    train_size = int(config["trainer"]["train_ratio"] * len(full_dataset))
-    test_size = len(full_dataset) - train_size
+    dataset = LJSpeechDataset(config["data"]["path_to_data"])
+    train_size = int(config["trainer"]["train_ratio"] * len(dataset))
+    test_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(
-        full_dataset, [train_size, test_size], 
+        dataset, 
+        [train_size, test_size],
         generator=torch.Generator().manual_seed(config["main"]["seed"])
     )
 
+    train_dataset = Subset(train_dataset, np.arange(config["trainer"]["batch_size"])) \
+        if config["main"]["overfit"] is True else train_dataset
+
     train_dataloader = DataLoader(
-        train_dataset, batch_size=config["trainer"]["batch_size"], collate_fn=LJSpeechCollator()
+        train_dataset, 
+        collate_fn=LJSpeechCollator(),
+        batch_size=config["trainer"]["batch_size"], 
+        num_workers=config["main"]["num_workers"]
     )
+
     val_dataloader = DataLoader(
-        val_dataset, batch_size=config["trainer"]["batch_size"], collate_fn=LJSpeechCollator()
+        val_dataset,
+        collate_fn=LJSpeechCollator(),
+        batch_size=config["trainer"]["batch_size"],
+        num_workers=config["main"]["num_workers"]
     )
+
     if config["main"]["verbose"]:
-        print("Data is downloaded and split.")
+        print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
+    vocoder = WaveGlow().eval()
+    aligner = GraphemeAligner(config)
+    mel_spectrogramer = MelSpectrogram(config)
 
+    acoustic_model = init_obj(config["arch"], acoustic_module_arch)#, n_class=len(text_encoder.char_to_index))
 
+    trainable_params = filter(lambda param: param.requires_grad, acoustic_model.parameters())
+    optimizer = init_obj(config["optimizer"], torch.optim, trainable_params)
+    lr_scheduler = init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
 
-    #if config["main"]["use_wandb"]:
-        #wandb.init(project=config["main"]["wandb_project_name"])
-        #wandb.watch(model)
-        
+    if config["pretrained_model"]["load_model"]:
+        if config["main"]["verbose"]:
+            print("Downloading the pretrained model.")
 
+        checkpoint = torch.load(config["pretrained_model"]["checkpoint_path"])
+        acoustic_model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optim_state_dict"])
     
-
+    if config["logger"]["use_wandb"]:
+        logger.watch(acoustic_model)
+        
+    #train(config=config,
+    #      model=acoustic_model,
+    #      optimizer=optimizer,
+    #      lr_scheduler=lr_scheduler,
+    #      vocoder=vocoder,
+    #      aligner=aligner,
+    #      train_dataloader=train_dataloader["train"],
+    #      val_dataloader=val_dataloader if config["main"]["overfit"] is False else None,
+    #      logger=logger,
+    #      device=device)
 
 
 if __name__ == "__main__":
@@ -64,7 +104,7 @@ if __name__ == "__main__":
 
     args = argparser.parse_args()
     config_path = Path(args.config)
-    with config_path.open("rt") as file:
+    with config_path.open("r") as file:
         config = json.load(file)
 
     main(config)

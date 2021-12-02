@@ -43,16 +43,19 @@ def main(config) -> None:
     train_dataset = Subset(train_dataset, np.arange(config["trainer"]["batch_size"])) \
         if config["main"]["overfit"] is True else train_dataset
 
+    aligner = GraphemeAligner(config)
+    mel_spectrogramer = MelSpectrogram(config)
+
     train_dataloader = DataLoader(
         train_dataset, 
-        collate_fn=LJSpeechCollator(),
+        collate_fn=LJSpeechCollator(mel_spectrogramer, aligner),
         batch_size=config["trainer"]["batch_size"], 
         num_workers=config["main"]["num_workers"]
     )
 
     val_dataloader = DataLoader(
         val_dataset,
-        collate_fn=LJSpeechCollator(),
+        collate_fn=LJSpeechCollator(mel_spectrogramer, aligner),
         batch_size=config["trainer"]["batch_size"],
         num_workers=config["main"]["num_workers"]
     )
@@ -61,8 +64,6 @@ def main(config) -> None:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
     vocoder = WaveGlow().eval()
-    aligner = GraphemeAligner(config)
-    mel_spectrogramer = MelSpectrogram(config)
 
     acoustic_model = init_obj(config["arch"], acoustic_module_arch)#, n_class=len(text_encoder.char_to_index))
 

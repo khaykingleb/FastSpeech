@@ -1,0 +1,32 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.8.8",
+    "heartbeatAt": "2021-12-02T21:19:21.020141",
+    "startedAt": "2021-12-02T21:19:17.444925",
+    "docker": null,
+    "cpu_count": 4,
+    "cuda": null,
+    "args": [
+        "--ip=127.0.0.1",
+        "--stdin=9033",
+        "--control=9031",
+        "--hb=9030",
+        "--Session.signature_scheme=\"hmac-sha256\"",
+        "--Session.key=b\"d6544cb5-f5db-41c7-8382-4a3df59e0446\"",
+        "--shell=9032",
+        "--transport=\"tcp\"",
+        "--iopub=9034",
+        "--f=/var/folders/ww/4125jjb51pj3363rfldx4rm00000gn/T/tmp-19071Sv6xJ3hLg28m.json"
+    ],
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "git@github.com:khaykingleb/Text-to-Speech.git",
+        "commit": "c7a0b692e75d65ab95e4c67d3d5edcfccc9a23fc"
+    },
+    "email": "khaykingleb@gmail.com",
+    "root": "/Users/khaykingleb/Dropbox/Text-to-Speech",
+    "host": "Glebs-MacBook-Pro-2.local",
+    "username": "khaykingleb",
+    "executable": "/opt/anaconda3/bin/python"
+}

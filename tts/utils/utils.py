@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 
+
 def seed_everything(main_config: dict) -> None:
     seed = main_config["main"]["seed"]
     random.seed(seed)
@@ -14,6 +15,7 @@ def seed_everything(main_config: dict) -> None:
     torch.backends.cudnn.enabled = False
     torch.backends.cudnn.deterministic = True
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:2"
+
 
 def init_obj(obj_dict, module, *args, **kwargs):
         """
@@ -31,3 +33,23 @@ def init_obj(obj_dict, module, *args, **kwargs):
         module_args.update(kwargs)
 
         return getattr(module, module_name)(*args, **module_args)
+
+
+@torch.no_grad()
+def get_grad_norm(model, norm_type=2):
+    parameters = model.parameters()
+
+    if isinstance(parameters, torch.Tensor):
+        parameters = [parameters]
+
+    parameters = [param for param in parameters if param.grad is not None]
+
+    total_norm = torch.norm(
+        torch.stack([
+            torch.norm(param.grad.detach(), norm_type).cpu() \
+            for param in parameters
+        ]),
+        norm_type
+    )
+
+    return total_norm.item()

@@ -100,13 +100,17 @@ def main(config) -> None:
     )
 
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(description="Text-to-Speech Template")
+    argparser = argparse.ArgumentParser(
+        description="Text-to-Speech Template"
+    )
 
-    argparser.add_argument("-c",
-                           "--config",
-                           type=str,
-                           required=True,
-                           help="Config file path")
+    argparser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        required=True,
+        help="Config file path"
+    )
 
     args = argparser.parse_args()
     config_path = Path(args.config)

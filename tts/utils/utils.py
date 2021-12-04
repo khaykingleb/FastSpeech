@@ -15,7 +15,7 @@ def seed_everything(main_config: dict) -> None:
     torch.backends.cudnn.deterministic = True
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:2"
 
-def init_obj(self, obj_dict, module, *args, **kwargs):
+def init_obj(obj_dict, module, *args, **kwargs):
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         instance initialized with corresponding arguments given.

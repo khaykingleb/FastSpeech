@@ -94,7 +94,7 @@ def main(config) -> None:
         aligner=aligner,
         melspectrogramer=melspectrogramer,
         train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
+        val_dataloader=val_dataloader if config["main"]["overfit"] is False else train_dataloader,
         device=device
     )
 

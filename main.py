@@ -59,7 +59,7 @@ def main(config) -> None:
         num_workers=config["main"]["num_workers"]
     )
 
-    val_dataloader = val_dataloader if config["main"]["overfit"] is False else train_dataloader
+    val_dataloader = train_dataloader if config["main"]["overfit"] else val_dataloader
 
     if config["main"]["verbose"]:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")

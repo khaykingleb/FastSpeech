@@ -14,7 +14,7 @@ class FastSpeechMSELoss(nn.MSELoss):
         mel_spec_pred: torch.Tensor, 
         mel_spec_true: torch.Tensor
     ) -> float:
-        durations_loss = self.mse_loss(durations_student, durations_teacher)
+        durations_loss = self.mse_loss(durations_student, (durations_teacher + 1e9).log())
         mel_spec_loss = self.mse_loss(mel_spec_pred, mel_spec_true)
 
         return durations_loss + mel_spec_loss

@@ -26,7 +26,7 @@ def train_epoch(
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
-        durations_pred = torch.round(torch.exp(durations_pred)).float()
+        #durations_pred = torch.round(torch.exp(durations_pred)).float()
         melspec_pred, batch.melspec = prolong_melspecs(
             melspec_pred, batch.melspec, config, device
         )    
@@ -150,4 +150,4 @@ def train(
                 "config": config
             }
             best_path = config["pretrained_model"]["path_to_save"] + "best.pth"
-            torch.save(state, )
+            torch.save(state, best_path)

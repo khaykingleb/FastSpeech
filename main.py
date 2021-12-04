@@ -12,9 +12,11 @@ import torch
 from tts.collate_fn import LJSpeechCollator
 from tts.spectrogram import MelSpectrogram
 from tts.datasets import LJSpeechDataset
-import tts.models as acoustic_module_arch
+from tts.models import FastSpeech
+from tts.loss import FastSpeechMSELoss
 from tts.aligner import GraphemeAligner
 from tts.vocoders import WaveGlow
+from tts.trainer import train
 from tts.utils import *
 
 
@@ -43,19 +45,16 @@ def main(config) -> None:
     train_dataset = Subset(train_dataset, np.arange(config["trainer"]["batch_size"])) \
         if config["main"]["overfit"] is True else train_dataset
 
-    aligner = GraphemeAligner(config)
-    mel_spectrogramer = MelSpectrogram(config)
-
     train_dataloader = DataLoader(
         train_dataset, 
-        collate_fn=LJSpeechCollator(mel_spectrogramer, aligner),
+        collate_fn=LJSpeechCollator(),
         batch_size=config["trainer"]["batch_size"], 
         num_workers=config["main"]["num_workers"]
     )
 
     val_dataloader = DataLoader(
         val_dataset,
-        collate_fn=LJSpeechCollator(mel_spectrogramer, aligner),
+        collate_fn=LJSpeechCollator(),
         batch_size=config["trainer"]["batch_size"],
         num_workers=config["main"]["num_workers"]
     )
@@ -63,36 +62,41 @@ def main(config) -> None:
     if config["main"]["verbose"]:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
-    vocoder = WaveGlow().eval()
+    vocoder = WaveGlow().eval().to(device)
 
-    acoustic_model = init_obj(config["arch"], acoustic_module_arch)#, n_class=len(text_encoder.char_to_index))
+    aligner = GraphemeAligner(config).to(device)
+    melspectrogramer = MelSpectrogram(config).to(device)
 
-    trainable_params = filter(lambda param: param.requires_grad, acoustic_model.parameters())
+    model = FastSpeech(config).to(device)
+    criterion = FastSpeechMSELoss()
+
+    trainable_params = filter(lambda param: param.requires_grad, model.parameters())
     optimizer = init_obj(config["optimizer"], torch.optim, trainable_params)
     lr_scheduler = init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
 
     if config["pretrained_model"]["load_model"]:
         if config["main"]["verbose"]:
             print("Downloading the pretrained model.")
-
         checkpoint = torch.load(config["pretrained_model"]["checkpoint_path"])
-        acoustic_model.load_state_dict(checkpoint["model_state_dict"])
+        model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optim_state_dict"])
     
     if config["logger"]["use_wandb"]:
-        wandb.watch(acoustic_model)
+        wandb.watch(model)
         
-    #train(config=config,
-    #      model=acoustic_model,
-    #      optimizer=optimizer,
-    #      lr_scheduler=lr_scheduler,
-    #      vocoder=vocoder,
-    #      aligner=aligner,
-    #      train_dataloader=train_dataloader["train"],
-    #      val_dataloader=val_dataloader if config["main"]["overfit"] is False else None,
-    #      logger=logger,
-    #      device=device)
-
+    train(
+        config=config, 
+        model=model, 
+        optimizer=optimizer,
+        lr_scheduler=lr_scheduler,
+        criterion=criterion,
+        vocoder=vocoder,
+        aligner=aligner,
+        melspectrogramer=melspectrogramer,
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        device=device
+    )
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description="Text-to-Speech Template")

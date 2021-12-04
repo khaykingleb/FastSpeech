@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Optional, List, Union
+from typing import *
 from dataclasses import dataclass
 
 from torch.nn.utils.rnn import pad_sequence
@@ -12,17 +12,17 @@ class Batch:
     transcript: List[str]
     tokens: torch.Tensor
     token_length: torch.Tensor
-    mel_spec: Optional[torch.Tensor] = None
+    melspec: Optional[torch.Tensor] = None
     durations: Optional[torch.Tensor] = None
         
-    def to(self, device: torch.device) -> 'Batch':
+    def to(self, device: torch.device) -> "Batch":
         batch = Batch(
             self.waveform.to(device),
             self.waveform_length.to(device),
             self.transcript,
             self.tokens.to(device),
             self.token_length.to(device),
-            self.mel_spec.to(device),
+            self.melspec.to(device),
             self.durations.to(device)
         )
         return batch

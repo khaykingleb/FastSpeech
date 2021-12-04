@@ -29,8 +29,8 @@ def prolong_melspecs(
         return prolonged_melspec
 
     if melspec_pred.shape[2] <= melspec_true.shape[2]:
-        melspec_pred = prolong_short(config, device, melspec_pred, melspec_true)    
+        melspec_pred = prolong_short(melspec_pred, melspec_true, config, device)    
     else:
-        melspec_true = prolong_short(config, device, melspec_true, melspec_pred) 
+        melspec_true = prolong_short(melspec_true, melspec_pred, config, device) 
 
     return melspec_pred, melspec_true

@@ -30,12 +30,12 @@ def train_epoch(
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         durations_pred = torch.round(torch.exp(durations_pred)).float()
         melspec_pred, batch.melspec = prolong_melspecs(
-            config, device, melspec_pred, batch.melspec
+            melspec_pred, batch.melspec, config, device
         )    
 
         loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
 
-        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["clip_grad_norm"])
+        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
 
         loss.backward()
         optimizer.step()
@@ -71,7 +71,7 @@ def validate_epoch(
 
             durations_pred, melspec_pred = model.inference(batch.tokens, batch.durations)
             melspec_pred, batch.melspec = prolong_melspecs(
-                config, device, melspec_pred, batch.melspec
+                melspec_pred, batch.melspec, config, device
             )    
             
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)

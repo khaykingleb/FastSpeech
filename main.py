@@ -16,7 +16,7 @@ from tts.models import FastSpeech
 from tts.loss import FastSpeechMSELoss
 from tts.aligner import GraphemeAligner
 from tts.vocoders import WaveGlow
-from tts.trainer import train
+from tts.trainer import *
 from tts.utils import *
 
 
@@ -63,8 +63,7 @@ def main(config) -> None:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
     vocoder = WaveGlow().eval().to(device)
-
-    aligner = GraphemeAligner(config).to(device)
+    aligner = GraphemeAligner(config).eval().to(device)
     melspectrogramer = MelSpectrogram(config).to(device)
 
     model = FastSpeech(config).to(device)

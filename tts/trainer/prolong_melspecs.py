@@ -4,7 +4,6 @@ import torch
 def change_melspecs(
       melspec_pred: torch.Tensor, 
       melspec_true: torch.Tensor,
-      type: str,
       config,
       device
 ) -> torch.Tensor:
@@ -28,17 +27,10 @@ def change_melspecs(
         prolonged_melspec = torch.cat([short_melspec, fill_tensor], dim=2)
 
         return prolonged_melspec
-
-    if type == "prolong":
-        if melspec_pred.shape[2] <= melspec_true.shape[2]:
-            melspec_pred = prolong_short(melspec_pred, melspec_true, config, device)  
-        else:
-            melspec_true = prolong_short(melspec_true, melspec_pred, config, device) 
-
-    elif type == "cut":
-        if melspec_pred.shape[2] <= melspec_true.shape[2]:
-            melspec_true = melspec_true[:, :, :melspec_pred.shape[2]]
-        else:
-            melspec_pred = melspec_pred[:, :, :melspec_true.shape[2]]
+        
+    if melspec_pred.shape[2] <= melspec_true.shape[2]:
+        melspec_pred = prolong_short(melspec_pred, melspec_true, config, device)  
+    else:
+        melspec_true = prolong_short(melspec_true, melspec_pred, config, device) 
 
     return melspec_pred, melspec_true

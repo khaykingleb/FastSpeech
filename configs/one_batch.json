@@ -57,7 +57,7 @@
   "arch": {
     "type": "FastSpeech",
     "args": {
-      "vocab_size": 36,
+      "vocab_size": 37,
       "n_mels": 80,
       "phoneme_fft_blocks": 6,
       "melspec_fft_blocks": 6,

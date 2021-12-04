@@ -123,8 +123,11 @@ def train(
 ):    
     history_val_loss = []
 
-    for epoch in tqdm(range(config["trainer"]["num_epoch"])):
-
+    #for epoch in tqdm(range(config["trainer"]["num_epoch"])):
+    epoch = 0
+    while True:
+        epoch += 1
+        
         train_loss = train_epoch(
             config, model, optimizer, lr_scheduler, criterion, aligner,
             melspectrogramer, train_dataloader, device
@@ -149,5 +152,5 @@ def train(
                 "optimizer": optimizer.state_dict(),
                 "config": config
             }
-            best_path = config["pretrained_model"]["path_to_save"] + "best.pth"
+            best_path = config["pretrained_model"]["path_to_save"] + "/best.pt"
             torch.save(state, best_path)

@@ -2,10 +2,10 @@ import torch
 
 
 def prolong_melspecs(
-      melspec_pred: torch.Tensor, 
-      melspec_true: torch.Tensor,
-      config,
-      device
+    melspec_pred: torch.Tensor, 
+    melspec_true: torch.Tensor,
+    config,
+    device
 ) -> torch.Tensor:
     """
     Pad short spectrogramm with silence.

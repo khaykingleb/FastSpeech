@@ -19,8 +19,8 @@ class DurationPredictor(nn.Module):
                 kernel_size=kernel_size,
                 padding="same"
             ),
-            nn.LayerNorm(hidden_size),
             nn.ReLU(),
+            nn.LayerNorm(hidden_size),
             nn.Dropout(dropout),
             nn.Conv1d(
                 in_channels=hidden_size,
@@ -28,8 +28,8 @@ class DurationPredictor(nn.Module):
                 kernel_size=kernel_size,
                 padding="same"
             ),
-            nn.LayerNorm(hidden_size),
             nn.ReLU(),
+            nn.LayerNorm(hidden_size),
             nn.Dropout(dropout),
             nn.Linear(hidden_size, 1)
         )
@@ -234,7 +234,12 @@ class FastSpeech(nn.Module):
             args_config["n_mels"]
         )
 
-    def length_regulator(self, x: torch.Tensor, durations: torch.Tensor, alpha: float = 1.0) -> torch.Tensor:
+    def length_regulator(
+        self, 
+        x: torch.Tensor, 
+        durations: torch.Tensor, 
+        alpha: float = 1.0
+    ) -> torch.Tensor:
         """
         Params:
             x: tensor with shape of (batch_size, seq_len, embed_size)
@@ -244,7 +249,6 @@ class FastSpeech(nn.Module):
         Returns: 
             x_extended: tensor with shape of (batch_size, seq_len_extended, embed_size)
         """
-        # Prediction of durations is presented in logarithmic scale
         durations = torch.round(durations * alpha).int()
 
         x_extended = []

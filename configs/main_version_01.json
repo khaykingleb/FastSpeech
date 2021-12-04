@@ -1,0 +1,72 @@
+{
+  "main": {
+    "overfit": false,
+    "seed": 100,
+    "num_workers": 1,
+    "verbose": true
+  }, 
+  "logger" : {
+    "use_wandb": true,
+    "wandb_key": "",
+    "wandb_project_name": "tts_one_batch",
+    "log_frequency": 1
+  },
+  "data": {
+    "path_to_data": "./data"
+  },
+  "pretrained_model": {
+    "load_model": false,
+    "checkpoint_path": "",
+    "path_to_save": "./saved"
+  },
+  "preprocessing": {
+    "sr": 22050,
+    "spectrogram": {
+      "args": {
+        "sr": 22050,
+        "win_length": 1024,
+        "hop_length": 256,
+        "n_fft": 1024,
+        "f_min": 0,
+        "f_max": 8000,
+        "n_mels": 80,
+        "power": 1.0,
+        "pad_value": -11.5129251
+      }
+    }
+  },
+  "trainer" : {
+    "train_ratio": 0.975,
+    "batch_size": 8,
+    "num_epoch": 200,
+    "grad_norm_clip": 10,
+    "use_lr_scheduler": false
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "betas": [0.9, 0.98]
+    }
+  },
+  "lr_scheduler": {
+    "type": "CosineAnnealingWarmRestarts",
+    "args": {
+      "T_0": 2000
+    }
+  },
+  "arch": {
+    "type": "FastSpeech",
+    "args": {
+      "vocab_size": 37,
+      "n_mels": 80,
+      "phoneme_fft_blocks": 6,
+      "melspec_fft_blocks": 6,
+      "phoneme_embed_size": 384,
+      "phoneme_max_len": 5000,
+      "num_heads": 2,
+      "hidden_size": 384,
+      "kernel_size": 3,
+      "dropout": 0.1
+    }
+  }
+}

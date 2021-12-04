@@ -1,7 +1,7 @@
 import torch
 
 
-def change_melspecs(
+def prolong_melspecs(
       melspec_pred: torch.Tensor, 
       melspec_true: torch.Tensor,
       config,

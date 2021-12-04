@@ -4,9 +4,9 @@ import wandb
 import torch.nn as nn
 import torch
 
-from tts.trainer.prolong_melspecs import prolong_melspecs
+from tts.trainer.change_melspecs import change_melspecs
 from tts.trainer.prepare_batch import prepare_batch
-from tts.utils import change_melspecs
+from tts.utils import get_grad_norm
 
 
 def train_epoch(
@@ -29,7 +29,7 @@ def train_epoch(
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         #durations_pred = torch.round(torch.exp(durations_pred)).float()
         melspec_pred, batch.melspec = change_melspecs(
-            melspec_pred, batch.melspec, config, device
+            melspec_pred, batch.melspec, "cut", config, device
         )    
 
         loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
@@ -68,10 +68,10 @@ def validate_epoch(
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
             #durations_pred = torch.round(torch.exp(durations_pred)).float()
-            melspec_pred, batch.melspec = prolong_melspecs(
-                melspec_pred, batch.melspec, config, device
+            melspec_pred, batch.melspec = change_melspecs(
+                melspec_pred, batch.melspec, "cut", config, device
             )    
-            
+
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
 
             if config["logger"]["use_wandb"] and \

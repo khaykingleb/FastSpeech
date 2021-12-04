@@ -20,9 +20,7 @@ def train_epoch(
     device
 ):
     model.train()
-
-    train_loss = 0
-    counter = 0
+    train_loss, counter = 0, 0
     
     for batch in train_dataloader:
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
@@ -61,15 +59,14 @@ def validate_epoch(
     device
 ):
     model.eval()
-
-    val_loss = 0
-    counter = 0
+    val_loss, counter = 0, 0
 
     with torch.no_grad():
         for batch in val_dataloader:
             batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
-            durations_pred, melspec_pred = model.inference(batch.tokens, batch.durations)
+            durations_pred, melspec_pred = model.inference(batch.tokens)
+            durations_pred = torch.round(torch.exp(durations_pred)).float()
             melspec_pred, batch.melspec = prolong_melspecs(
                 melspec_pred, batch.melspec, config, device
             )    
@@ -95,7 +92,7 @@ def validate_epoch(
                 )
             })
 
-            wav_pred = vocoder.inference(melspec_pred).cpu().squeeze()
+            wav_pred = vocoder.inference(melspec_pred[0, :, :].unsqueeze(0).detach().cpu()).squeeze()
             wandb.log({
                 "Predicted Audio": wandb.Audio(
                     wav_pred.detach().cpu().numpy(), 

@@ -282,6 +282,7 @@ class FastSpeech(nn.Module):
             x: tensor of shape (batch_size, seq_len)
 
         Returns:
+            durations_pred: tensor with shape of (batch_size, seq_len_student)
             melspec_pred: tensor with shape of (batch_size, n_mels, seq_len)
         """
         out = self.encoder(self.positional_encoding(self.phoneme_embedding(x)))
@@ -294,4 +295,4 @@ class FastSpeech(nn.Module):
 
         melspec_pred = self.linear(out).permute(0, 2, 1)
 
-        return melspec_pred
+        return durations_pred, melspec_pred

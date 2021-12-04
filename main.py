@@ -62,7 +62,7 @@ def main(config) -> None:
     if config["main"]["verbose"]:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
-    vocoder = WaveGlow().eval().to(device)
+    vocoder = WaveGlow().eval()
     aligner = GraphemeAligner(config).eval().to(device)
     melspectrogramer = MelSpectrogram(config).to(device)
 

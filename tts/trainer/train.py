@@ -91,7 +91,7 @@ def validate_epoch(
                 )
             })
 
-            wav_pred = vocoder.inference(melspec_pred[0, :, :].unsqueeze(0).detach().cpu()).squeeze()
+            wav_pred = vocoder.inference(melspec_pred[0, :, :].unsqueeze(0)).squeeze()
             wandb.log({
                 "Predicted Audio": wandb.Audio(
                     wav_pred.detach().cpu().numpy(), 
@@ -125,11 +125,15 @@ def train(
 
     for epoch in tqdm(range(config["trainer"]["num_epoch"])):
 
-        train_loss = train_epoch(config, model, optimizer, lr_scheduler, criterion, aligner,
-                                 melspectrogramer, train_dataloader, device)
+        train_loss = train_epoch(
+            config, model, optimizer, lr_scheduler, criterion, aligner,
+            melspectrogramer, train_dataloader, device
+        )
 
-        val_loss = validate_epoch(config, model, criterion, vocoder, aligner,
-                                  melspectrogramer, val_dataloader, device)
+        val_loss = validate_epoch(
+            config, model, criterion, vocoder, aligner,
+            melspectrogramer, val_dataloader, device
+        )
         
         history_val_loss.append(val_loss)
          

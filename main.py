@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse
 import json
+import wandb
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -14,13 +15,12 @@ from tts.datasets import LJSpeechDataset
 import tts.models as acoustic_module_arch
 from tts.aligner import GraphemeAligner
 from tts.vocoders import WaveGlow
-from tts.loggers import Wandb
 from tts.utils import *
 
 
 def main(config) -> None:
     if config["logger"]["use_wandb"]:
-        logger = Wandb(config)
+        wandb.init(project=config["logger"]["wandb_project_name"])
 
     seed_everything(config)
 
@@ -80,7 +80,7 @@ def main(config) -> None:
         optimizer.load_state_dict(checkpoint["optim_state_dict"])
     
     if config["logger"]["use_wandb"]:
-        logger.watch(acoustic_model)
+        wandb.watch(acoustic_model)
         
     #train(config=config,
     #      model=acoustic_model,

@@ -62,7 +62,7 @@ def validate_epoch(
     val_loss, counter = 0, 0
 
     with torch.no_grad():
-        for batch in val_dataloader:
+        for batch_idx, batch in enumerate(val_dataloader):
             batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
@@ -73,14 +73,13 @@ def validate_epoch(
             
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
 
-            if config["logger"]["use_wandb"] and config["logger"]["log_frequency"] == 0:             
+            if config["logger"]["use_wandb"] and batch_idx % config["logger"]["log_frequency"] == 0:             
                 wandb.log({"Validation loss": loss.item()})
             
             val_loss += loss.item()
             counter += 1
 
         if config["logger"]["use_wandb"]:
-
             wandb.log({
                 "Predicted Spectrogram": wandb.Image(
                     melspec_pred[0, :, :].detach().cpu().numpy(), 

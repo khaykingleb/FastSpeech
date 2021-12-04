@@ -37,7 +37,7 @@
   },
   "trainer" : {
     "train_ratio": 0.975,
-    "batch_size": 16,
+    "batch_size": 8,
     "num_epoch": 200,
     "grad_norm_clip": 10,
     "use_lr_scheduler": false

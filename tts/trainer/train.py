@@ -134,7 +134,7 @@ def train(
         history_val_loss.append(val_loss)
          
         if config["logger"]["use_wandb"]:             
-            wandb.log({"Train loss": train_loss}) 
+            wandb.log({"Train loss": train_loss, "epoch": epoch}) 
         
         if val_loss <= min(history_val_loss):
             arch = type(model).__name__
@@ -145,4 +145,5 @@ def train(
                 "optimizer": optimizer.state_dict(),
                 "config": config
             }
-            torch.save(state, config["pretrained_model"]["path_to_save"])
+            best_path = config["pretrained_model"]["path_to_save"] + "best.pth"
+            torch.save(state, )

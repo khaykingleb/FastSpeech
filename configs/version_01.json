@@ -43,19 +43,14 @@
     "use_lr_scheduler": true
   },
   "optimizer": {
-    "type": "Adam",
-    "args": {
-      "betas": [
+    "betas": [
         0.9,
         0.98
-      ]
-    }
-  },
-  "lr_scheduler": {
-    "type": "CosineAnnealingWarmRestarts",
-    "args": {
-      "T_0": 6000
-    }
+    ],
+    "eps": 1e-09,
+    "lr_mul": 2.0,
+    "d_model": 384,
+    "n_warmup_steps": 4000
   },
   "arch": {
     "type": "FastSpeech",

@@ -34,6 +34,7 @@ class DurationPredictor(nn.Module):
             nn.Linear(hidden_size, 1)
         )
 
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -56,6 +57,7 @@ class DurationPredictor(nn.Module):
 
 class Attention(nn.Module):
 
+
     def __init__(self, num_heads: int, hidden_size: int, dropout: float):
         super().__init__()
         attention_size = hidden_size // num_heads
@@ -66,6 +68,7 @@ class Attention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
     
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -102,6 +105,7 @@ class MultiHeadAttention(nn.Module):
         
         self.linear = nn.Linear(hidden_size, hidden_size)
     
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -148,6 +152,7 @@ class FFTBlock(nn.Module):
         self.layer_norm_1 = nn.LayerNorm(hidden_size)
         self.layer_norm_2 = nn.LayerNorm(hidden_size)
     
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -179,6 +184,7 @@ class PositionalEncoding(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
     
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -194,6 +200,8 @@ class PositionalEncoding(nn.Module):
 
 
 class FastSpeech(nn.Module):
+
+
     def __init__(self, config):
         super().__init__()
         args_config = config["arch"]["args"]
@@ -233,6 +241,7 @@ class FastSpeech(nn.Module):
             args_config["hidden_size"], 
             args_config["n_mels"]
         )
+
 
     def length_regulator(
         self, 
@@ -279,6 +288,7 @@ class FastSpeech(nn.Module):
         melspec_pred = self.linear(out).permute(0, 2, 1)
 
         return durations_pred, melspec_pred
+
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:
         """

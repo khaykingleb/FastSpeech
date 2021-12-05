@@ -16,6 +16,7 @@ from tts.models import FastSpeech
 from tts.loss import FastSpeechMSELoss
 from tts.aligner import GraphemeAligner
 from tts.vocoders import WaveGlow
+from tts.optimizer import ScheduledOptimizer
 from tts.trainer import *
 from tts.utils import *
 
@@ -72,8 +73,16 @@ def main(config) -> None:
     criterion = FastSpeechMSELoss()
 
     trainable_params = filter(lambda param: param.requires_grad, model.parameters())
-    optimizer = init_obj(config["optimizer"], torch.optim, trainable_params)
-    lr_scheduler = init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
+    optimizer = ScheduledOptimizer(
+        torch.optim.Adam(
+            trainable_params, 
+            betas=config["optimizer"]["betas"],
+            eps=config["optimizer"]["eps"]
+        ),
+        config["optimizer"]["lr_mul"],
+        config["optimizer"]["d_model"],
+        config["optimizer"]["n_warmup_steps"],
+    )
 
     if config["pretrained_model"]["load_model"]:
         if config["main"]["verbose"]:
@@ -89,7 +98,6 @@ def main(config) -> None:
         config=config, 
         model=model, 
         optimizer=optimizer,
-        lr_scheduler=lr_scheduler,
         criterion=criterion,
         vocoder=vocoder,
         aligner=aligner,

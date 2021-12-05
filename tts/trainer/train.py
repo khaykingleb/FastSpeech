@@ -15,7 +15,6 @@ def train_epoch(
     config, 
     model, 
     optimizer,
-    lr_scheduler,
     criterion,
     aligner,
     melspectrogramer,
@@ -28,6 +27,7 @@ def train_epoch(
     for batch_idx, batch in enumerate(train_dataloader):
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
+        optimizer.zero_grad()
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         melspec_pred, batch.melspec = prolong_melspecs(
             melspec_pred, batch.melspec, config, device
@@ -36,23 +36,13 @@ def train_epoch(
         loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
+        optimizer.step_and_update_lr()
 
         if config["logger"]["use_wandb"] and \
         batch_idx % config["logger"]["log_frequency"] == 0:             
             wandb.log({"Train Loss": loss.item()})
-            
-            if config["trainer"]["use_lr_scheduler"]:
-                lr = lr_scheduler.get_last_lr()[0]
-                wandb.log({"Learning rate": lr})
-            
-            grad_norm = get_grad_norm(model)
-            wandb.log({"Gradient Norm": grad_norm})
-
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if config["trainer"]["use_lr_scheduler"]:
-            lr_scheduler.step()
+            wandb.log({"Gradient Norm": get_grad_norm(model)})
+            wandb.log({"Learning Rate": optimizer.get_lr_scale()})
 
         train_loss += loss.item()
         counter += 1
@@ -128,7 +118,6 @@ def train(
     config, 
     model, 
     optimizer,
-    lr_scheduler,
     criterion,
     vocoder,
     aligner,
@@ -145,7 +134,7 @@ def train(
         epoch += 1
 
         train_loss = train_epoch(
-            config, model, optimizer, lr_scheduler, criterion, aligner,
+            config, model, optimizer, criterion, aligner,
             melspectrogramer, train_dataloader, device
         )
 

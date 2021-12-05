@@ -4,6 +4,8 @@ import wandb
 import torch.nn as nn
 import torch
 
+import numpy as np
+
 from tts.trainer.prolong_melspecs import prolong_melspecs
 from tts.trainer.prepare_batch import prepare_batch
 from tts.utils import get_grad_norm
@@ -41,10 +43,17 @@ def train_epoch(
 
         if config["trainer"]["use_lr_scheduler"]:
             lr_scheduler.step()
-
+            
         if config["logger"]["use_wandb"] and \
         batch_idx % config["logger"]["log_frequency"] == 0:             
             wandb.log({"Train Loss": loss.item()})
+            
+            if config["trainer"]["use_lr_scheduler"]:
+                lr = lr_scheduler.get_last_lr()[0]
+                wandb.log({"Learning rate": loss.item()})
+            
+            grad_norm = get_grad_norm(model)
+            wandb.log({"Gradient Norm": grad_norm})
 
         train_loss += loss.item()
         counter += 1
@@ -70,6 +79,7 @@ def validate_epoch(
             batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
+            durations_pred = torch.nan_to_num(durations_pred.log(), neginf=0)
             melspec_pred, batch.melspec = prolong_melspecs(
                 melspec_pred, batch.melspec, config, device
             )    
@@ -84,28 +94,31 @@ def validate_epoch(
             counter += 1
 
         if config["logger"]["use_wandb"]:
+            random_idx = np.random.randint(0, batch.waveform.shape[0])
             wandb.log({
                 "Predicted Spectrogram": wandb.Image(
-                    melspec_pred[0, :, :].detach().cpu().numpy(), 
-                    caption=batch.transcript[0].capitalize()
+                    melspec_pred[random_idx, :, :].detach().cpu().numpy(), 
+                    caption=batch.transcript[random_idx].capitalize()
                 ),
                 "True Spectrogram": wandb.Image(
-                    batch.melspec[0, :, :].detach().cpu().numpy(),
-                    caption=batch.transcript[0].capitalize()
+                    batch.melspec[random_idx, :, :].detach().cpu().numpy(),
+                    caption=batch.transcript[random_idx].capitalize()
                 )
             })
 
-            wav_pred = vocoder.inference(melspec_pred[0, :, :].unsqueeze(0).detach().cpu()).squeeze()
+            wav_pred = vocoder.inference(
+                melspec_pred[random_idx, :, :].unsqueeze(0).detach().cpu()
+            ).squeeze()
             wandb.log({
                 "Predicted Audio": wandb.Audio(
                     wav_pred.detach().cpu().numpy(), 
                     sample_rate=config["preprocessing"]["sr"], 
-                    caption=batch.transcript[0].capitalize()
+                    caption=batch.transcript[random_idx].capitalize()
                 ),
                 "True Audio": wandb.Audio(
                     batch.waveform[0].detach().cpu().numpy(),
                     sample_rate=config["preprocessing"]["sr"], 
-                    caption=batch.transcript[0].capitalize()
+                    caption=batch.transcript[random_idx].capitalize()
                 )
             })
     
@@ -126,9 +139,9 @@ def train(
     device
 ):    
     history_val_loss = []
+    epoch = 0
 
     #for epoch in tqdm(range(config["trainer"]["num_epoch"])):
-    epoch = 0
     while True:
         epoch += 1
 

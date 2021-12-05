@@ -1,3 +1,4 @@
+from logging import lastResort
 from tqdm.notebook import tqdm
 import wandb
 
@@ -37,22 +38,22 @@ def train_epoch(
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
 
-        if config["trainer"]["use_lr_scheduler"]:
-            lr_scheduler.step()
-            
         if config["logger"]["use_wandb"] and \
         batch_idx % config["logger"]["log_frequency"] == 0:             
             wandb.log({"Train Loss": loss.item()})
             
             if config["trainer"]["use_lr_scheduler"]:
                 lr = lr_scheduler.get_last_lr()[0]
-                wandb.log({"Learning rate": loss.item()})
+                wandb.log({"Learning rate": lr})
             
             grad_norm = get_grad_norm(model)
             wandb.log({"Gradient Norm": grad_norm})
 
         optimizer.step()
         optimizer.zero_grad()
+
+        if config["trainer"]["use_lr_scheduler"]:
+            lr_scheduler.step()
 
         train_loss += loss.item()
         counter += 1

@@ -21,7 +21,7 @@ from tts.trainer import *
 from tts.utils import *
 
 
-def main(config) -> None:
+def main(config):
     if config["logger"]["use_wandb"]:
         wandb.init(project=config["logger"]["wandb_project_name"])
 
@@ -65,7 +65,7 @@ def main(config) -> None:
     if config["main"]["verbose"]:
         print("Initializing the vocoder, acoustic model, optimizer and lr_scheduler.")
 
-    vocoder = WaveGlow().eval()
+    vocoder = WaveGlow().eval().to(device)
     aligner = GraphemeAligner(config).eval().to(device)
     melspectrogramer = MelSpectrogram(config).to(device)
 

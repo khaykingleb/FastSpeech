@@ -4,12 +4,11 @@
     "seed": 100,
     "num_workers": 1,
     "verbose": true
-  }, 
-  "logger" : {
+  },
+  "logger": {
     "use_wandb": true,
-    "wandb_key": "",
     "wandb_project_name": "tts_one_batch",
-    "log_frequency": 1
+    "log_frequency": 10
   },
   "data": {
     "path_to_data": "./data"
@@ -35,38 +34,31 @@
       }
     }
   },
-  "trainer" : {
+  "trainer": {
     "train_ratio": 0.975,
-    "batch_size": 8,
-    "num_epoch": 200,
-    "grad_norm_clip": 10,
-    "use_lr_scheduler": false
+    "batch_size": 16,
+    "grad_norm_clip": 10
   },
   "optimizer": {
-    "type": "Adam",
-    "args": {
-      "betas": [0.9, 0.98]
-    }
-  },
-  "lr_scheduler": {
-    "type": "CosineAnnealingWarmRestarts",
-    "args": {
-      "T_0": 2000
-    }
+    "betas": [
+      0.9,
+      0.98
+    ],
+    "eps": 1e-09,
+    "lr_mul": 2.0,
+    "d_model": 384,
+    "n_warmup_steps": 6000
   },
   "arch": {
-    "type": "FastSpeech",
-    "args": {
-      "vocab_size": 37,
-      "n_mels": 80,
-      "phoneme_fft_blocks": 6,
-      "melspec_fft_blocks": 6,
-      "phoneme_embed_size": 384,
-      "phoneme_max_len": 5000,
-      "num_heads": 2,
-      "hidden_size": 384,
-      "kernel_size": 3,
-      "dropout": 0.1
-    }
+    "vocab_size": 51,
+    "n_mels": 80,
+    "phoneme_fft_blocks": 6,
+    "melspec_fft_blocks": 6,
+    "phoneme_embed_size": 384,
+    "phoneme_max_len": 5000,
+    "num_heads": 2,
+    "hidden_size": 384,
+    "kernel_size": 3,
+    "dropout": 0.1
   }
 }

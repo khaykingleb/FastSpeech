@@ -27,7 +27,6 @@ def train_epoch(
     for batch_idx, batch in enumerate(train_dataloader):
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
-        optimizer.zero_grad()
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         melspec_pred, batch.melspec = prolong_melspecs(
             melspec_pred, batch.melspec, config, device
@@ -37,14 +36,18 @@ def train_epoch(
         train_loss += loss.item()
 
         loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
-        optimizer.step_and_update_lr()
 
-        if config["logger"]["use_wandb"] and \
-        batch_idx % config["logger"]["log_frequency"] == 0:             
-            wandb.log({"Train Loss": loss.item()})
-            wandb.log({"Gradient Norm": get_grad_norm(model)})
-            wandb.log({"Learning Rate": optimizer.optimizer.param_groups[0]['lr']})
+        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
+
+        optimizer.step_and_update_lr()
+        optimizer.zero_grad()
+
+        if config["logger"]["use_wandb"]:             
+            wandb.log({
+                "Train Loss on Batch": loss.item(),
+                "Gradient Norm on Batch": get_grad_norm(model),
+                "Learning Rate on Batch": optimizer.optimizer.param_groups[0]['lr']
+            })
         
     return train_loss / len(train_dataloader)  
 
@@ -74,10 +77,9 @@ def validate_epoch(
             
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
             val_loss += loss.item()
-            if config["logger"]["use_wandb"] and \
-            batch_idx % config["logger"]["log_frequency"] == 0:             
-                wandb.log({"Validation Loss": loss.item()})
             
+            if config["logger"]["use_wandb"]:             
+                wandb.log({"Validation Loss on Batch": loss.item()})
 
         if config["logger"]["use_wandb"]:
             random_idx = np.random.randint(0, batch.waveform.shape[0])
@@ -93,7 +95,7 @@ def validate_epoch(
             })
 
             wav_pred = vocoder.inference(
-                melspec_pred[random_idx, :, :].unsqueeze(0).detach().cpu()
+                melspec_pred[random_idx, :, :].unsqueeze(0)
             ).squeeze()
             wandb.log({
                 "Predicted Audio": wandb.Audio(
@@ -102,7 +104,7 @@ def validate_epoch(
                     caption=batch.transcript[random_idx].capitalize()
                 ),
                 "True Audio": wandb.Audio(
-                    batch.waveform[0].detach().cpu().numpy(),
+                    batch.waveform[random_idx].detach().cpu().numpy(),
                     sample_rate=config["preprocessing"]["sr"], 
                     caption=batch.transcript[random_idx].capitalize()
                 )
@@ -143,9 +145,11 @@ def train(
         history_val_loss.append(val_loss)
          
         if config["logger"]["use_wandb"]:             
-            wandb.log({"Epoch": epoch})
-            wandb.log({"Global Train Loss": train_loss})
-            wandb.log({"Global Validation Loss": val_loss})  
+            wandb.log({
+                "Epoch": epoch,
+                "Global Train Loss": train_loss,
+                "Global Validation Loss": val_loss
+            })  
         
         if val_loss <= min(history_val_loss):
             arch = type(model).__name__

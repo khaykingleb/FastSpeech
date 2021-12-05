@@ -12,8 +12,8 @@ class Batch:
     transcript: List[str]
     tokens: torch.Tensor
     token_length: torch.Tensor
-    melspec: Optional[torch.Tensor] = None
     durations: Optional[torch.Tensor] = None
+    melspec: Optional[torch.Tensor] = None
         
     def to(self, device: torch.device) -> "Batch":
         batch = Batch(
@@ -22,18 +22,21 @@ class Batch:
             self.transcript,
             self.tokens.to(device),
             self.token_length.to(device),
-            self.melspec.to(device),
-            self.durations.to(device)
+            self.durations.to(device),
+            self.melspec.to(device)
         )
         return batch
 
 class LJSpeechCollator:
 
+    def __init__(self, use_alignments_folder: bool):
+        self.use_alignments_folder = use_alignments_folder
+
     def __call__(self, instances: List[Tuple]) -> Dict:
-        waveform, waveform_length, transcript, tokens, token_lengths = list(
+        waveform, waveform_length, transcript, tokens, token_lengths, durations = list(
             zip(*instances)
         )
-
+        
         waveform = pad_sequence([
             waveform_[0] for waveform_ in waveform
         ]).transpose(0, 1)
@@ -44,8 +47,11 @@ class LJSpeechCollator:
         ]).transpose(0, 1)
         token_lengths = torch.cat(token_lengths)
 
+        if self.use_alignments_folder:
+            durations = pad_sequence(durations).transpose(0, 1)
+
         batch = Batch(
-            waveform, waveform_length, transcript, tokens, token_lengths
+            waveform, waveform_length, transcript, tokens, token_lengths, durations
         )
 
         return batch

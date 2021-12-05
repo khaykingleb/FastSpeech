@@ -25,7 +25,7 @@ def train_epoch(
     train_loss = 0
     
     for batch_idx, batch in enumerate(train_dataloader):
-        batch = prepare_batch(batch, melspectrogramer, aligner, device)
+        batch = prepare_batch(batch, melspectrogramer, aligner, config, device)
 
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         melspec_pred, batch.melspec = prolong_melspecs(
@@ -67,7 +67,7 @@ def validate_epoch(
 
     with torch.no_grad():
         for batch_idx, batch in enumerate(val_dataloader):
-            batch = prepare_batch(batch, melspectrogramer, aligner, device)
+            batch = prepare_batch(batch, melspectrogramer, aligner, config, device)
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
             durations_pred = torch.nan_to_num(durations_pred.log(), neginf=0)

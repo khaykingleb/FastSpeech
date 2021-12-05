@@ -28,8 +28,8 @@ class DurationPredictor(nn.Module):
                 kernel_size=kernel_size,
                 padding="same"
             ),
-            nn.ReLU(),
             nn.LayerNorm(hidden_size),
+            nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(hidden_size, 1)
         )

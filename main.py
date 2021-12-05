@@ -30,11 +30,14 @@ def main(config):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if config["main"]["verbose"]:
         print(f"The training process will be performed on {device}.")
-    
+
     if config["main"]["verbose"]:
         print("Downloading and splitting the data.")
 
-    dataset = LJSpeechDataset(config["data"]["path_to_data"])
+    dataset = LJSpeechDataset(
+        config["data"]["path_to_data"], 
+        config["main"]["use_alignments_folder"]
+    )
     train_size = int(config["trainer"]["train_ratio"] * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(
@@ -43,19 +46,20 @@ def main(config):
         generator=torch.Generator().manual_seed(config["main"]["seed"])
     )
 
-    train_dataset = Subset(train_dataset, np.arange(config["trainer"]["batch_size"])) \
-        if config["main"]["overfit"] is True else train_dataset
+    train_dataset = Subset(
+        train_dataset, np.arange(config["trainer"]["batch_size"])
+    ) if config["main"]["overfit"] is True else train_dataset
 
     train_dataloader = DataLoader(
         train_dataset, 
-        collate_fn=LJSpeechCollator(),
+        collate_fn=LJSpeechCollator(config["main"]["use_alignments_folder"]),
         batch_size=config["trainer"]["batch_size"], 
         num_workers=config["main"]["num_workers"]
     )
 
     val_dataloader = DataLoader(
         val_dataset,
-        collate_fn=LJSpeechCollator(),
+        collate_fn=LJSpeechCollator(config["main"]["use_alignments_folder"]),
         batch_size=config["trainer"]["batch_size"],
         num_workers=config["main"]["num_workers"]
     )
@@ -89,7 +93,7 @@ def main(config):
             print("Downloading the pretrained model.")
         checkpoint = torch.load(config["pretrained_model"]["checkpoint_path"])
         model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optim_state_dict"])
+        optimizer.load_state_dict(checkpoint["optim_state_dict"])  
     
     if config["logger"]["use_wandb"]:
         wandb.watch(model)

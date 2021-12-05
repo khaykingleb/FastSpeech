@@ -3,12 +3,12 @@
     "overfit": true,
     "seed": 100,
     "num_workers": 1,
-    "verbose": true
+    "verbose": true,
+    "use_alignments_folder": false
   },
   "logger": {
     "use_wandb": true,
-    "wandb_project_name": "tts_one_batch",
-    "log_frequency": 10
+    "wandb_project_name": "tts_one_batch"
   },
   "data": {
     "path_to_data": "./data"

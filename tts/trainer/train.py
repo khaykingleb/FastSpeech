@@ -34,12 +34,8 @@ def train_epoch(
         )    
 
         loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
-
-        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
-
         loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
+        nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
 
         if config["trainer"]["use_lr_scheduler"]:
             lr_scheduler.step()
@@ -54,6 +50,9 @@ def train_epoch(
             
             grad_norm = get_grad_norm(model)
             wandb.log({"Gradient Norm": grad_norm})
+
+        optimizer.step()
+        optimizer.zero_grad()
 
         train_loss += loss.item()
         counter += 1

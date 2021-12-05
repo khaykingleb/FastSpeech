@@ -45,8 +45,8 @@ def train_epoch(
         if config["logger"]["use_wandb"]:             
             wandb.log({
                 "Train Loss on Batch": loss.item(),
-                "Gradient Norm on Batch": get_grad_norm(model),
-                "Learning Rate on Batch": optimizer.optimizer.param_groups[0]['lr']
+                "Gradient Norm": get_grad_norm(model),
+                "Learning Rate": optimizer.optimizer.param_groups[0]['lr']
             })
         
     return train_loss / len(train_dataloader)  
@@ -77,7 +77,7 @@ def validate_epoch(
             
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
             val_loss += loss.item()
-            
+
             if config["logger"]["use_wandb"]:             
                 wandb.log({"Validation Loss on Batch": loss.item()})
 

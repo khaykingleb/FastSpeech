@@ -26,6 +26,9 @@ def train_epoch(
     
     for batch_idx, batch in enumerate(train_dataloader):
         batch = prepare_batch(batch, melspectrogramer, aligner, config, device)
+        if config["main"]["use_alignments_folder"] and \
+            batch.tokens.shape[1] != batch.durations.shape[1]: 
+            continue
 
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
         melspec_pred, batch.melspec = prolong_melspecs(
@@ -65,17 +68,21 @@ def validate_epoch(
     model.eval()
     val_loss = 0
 
+    melspec_loss = nn.MSELoss()
+
     with torch.no_grad():
         for batch_idx, batch in enumerate(val_dataloader):
             batch = prepare_batch(batch, melspectrogramer, aligner, config, device)
+            if config["main"]["use_alignments_folder"] and \
+                batch.tokens.shape[1] != batch.durations.shape[1]: 
+                continue
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
-            durations_pred = torch.nan_to_num(durations_pred.log(), neginf=0)
             melspec_pred, batch.melspec = prolong_melspecs(
                 melspec_pred, batch.melspec, config, device
             )    
             
-            loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
+            loss = melspec_loss(melspec_pred, batch.melspec)
             val_loss += loss.item()
 
             if config["logger"]["use_wandb"]:             

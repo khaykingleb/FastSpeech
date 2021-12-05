@@ -39,15 +39,15 @@ def train_epoch(
 
         nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
 
-        optimizer.step_and_update_lr()
-        optimizer.zero_grad()
-
         if config["logger"]["use_wandb"]:             
             wandb.log({
                 "Train Loss on Batch": loss.item(),
                 "Gradient Norm": get_grad_norm(model),
                 "Learning Rate": optimizer.optimizer.param_groups[0]['lr']
             })
+        
+        optimizer.step_and_update_lr()
+        optimizer.zero_grad()
         
     return train_loss / len(train_dataloader)  
 

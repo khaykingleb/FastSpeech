@@ -204,7 +204,7 @@ class FastSpeech(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        args_config = config["arch"]["args"]
+        args_config = config["arch"]
 
         self.phoneme_embedding = nn.Embedding(
             args_config["vocab_size"], 

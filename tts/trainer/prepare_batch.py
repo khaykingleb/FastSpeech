@@ -1,22 +1,23 @@
-import torch
 from torch.nn.utils.rnn import pad_sequence
+import torch.nn as nn
+import torch
 
 from tts.collate_fn import Batch
-from tts.spectrogram import MelSpectrogram
-from tts.aligner import GraphemeAligner
 
 
 def prepare_batch(
     batch: Batch, 
-    melspectrogramer: MelSpectrogram, 
-    aligner: GraphemeAligner, 
-    device
+    melspectrogramer: nn.Module, 
+    aligner: nn.Module, 
+    device: torch.device
 ) -> Batch:
 
     batch.melspec = melspectrogramer(batch.waveform.to(device))
 
     durations = aligner(
-        batch.waveform.to(device), batch.waveform_length.to(device), batch.transcript
+        batch.waveform.to(device), 
+        batch.waveform_length.to(device), 
+        batch.transcript
     )
 
     durations_melspec = []
@@ -27,7 +28,9 @@ def prepare_batch(
         melspec = melspectrogramer(
             batch.waveform[index][:batch.waveform_length[index]].to(device)
         )
-        durations_melspec.append(torch.round(durations_normalized * melspec.shape[1]).float())
+        durations_melspec.append(
+            torch.round(durations_normalized * melspec.shape[1]).float()
+        )
         
     batch.durations = pad_sequence(durations_melspec).permute(1, 0)
 

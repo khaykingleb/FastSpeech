@@ -1,4 +1,3 @@
-from logging import lastResort
 from tqdm.notebook import tqdm
 import wandb
 

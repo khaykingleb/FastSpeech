@@ -2,16 +2,13 @@ from torch.nn.utils.rnn import pad_sequence
 import torch.nn as nn
 import torch
 
-from tts.collate_fn import Batch
-
 
 def prepare_batch(
-    batch: Batch, 
-    melspectrogramer: nn.Module, 
-    aligner: nn.Module, 
-    device: torch.device
-) -> Batch:
-
+    batch, 
+    melspectrogramer, 
+    aligner, 
+    device
+):
     batch.melspec = melspectrogramer(batch.waveform.to(device))
 
     durations = aligner(

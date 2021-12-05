@@ -50,18 +50,15 @@
     "n_warmup_steps": 6000
   },
   "arch": {
-    "type": "FastSpeech",
-    "args": {
-      "vocab_size": 51,
-      "n_mels": 80,
-      "phoneme_fft_blocks": 6,
-      "melspec_fft_blocks": 6,
-      "phoneme_embed_size": 384,
-      "phoneme_max_len": 5000,
-      "num_heads": 2,
-      "hidden_size": 384,
-      "kernel_size": 3,
-      "dropout": 0.1
-    }
+    "vocab_size": 51,
+    "n_mels": 80,
+    "phoneme_fft_blocks": 6,
+    "melspec_fft_blocks": 6,
+    "phoneme_embed_size": 384,
+    "phoneme_max_len": 5000,
+    "num_heads": 2,
+    "hidden_size": 384,
+    "kernel_size": 3,
+    "dropout": 0.1
   }
 }

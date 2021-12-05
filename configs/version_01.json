@@ -7,7 +7,6 @@
   },
   "logger": {
     "use_wandb": true,
-    "wandb_key": "",
     "wandb_project_name": "tts_one_batch",
     "log_frequency": 10
   },
@@ -37,10 +36,8 @@
   },
   "trainer": {
     "train_ratio": 0.975,
-    "batch_size": 8,
-    "num_epoch": 200,
-    "grad_norm_clip": 10,
-    "use_lr_scheduler": true
+    "batch_size": 16,
+    "grad_norm_clip": 10
   },
   "optimizer": {
     "betas": [
@@ -50,7 +47,7 @@
     "eps": 1e-09,
     "lr_mul": 2.0,
     "d_model": 384,
-    "n_warmup_steps": 4000
+    "n_warmup_steps": 6000
   },
   "arch": {
     "type": "FastSpeech",

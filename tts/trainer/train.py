@@ -22,7 +22,7 @@ def train_epoch(
     device
 ):
     model.train()
-    train_loss, counter = 0, 0
+    train_loss = 0
     
     for batch_idx, batch in enumerate(train_dataloader):
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
@@ -34,6 +34,8 @@ def train_epoch(
         )    
 
         loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
+        train_loss += loss.item()
+
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), config["trainer"]["grad_norm_clip"])
         optimizer.step_and_update_lr()
@@ -42,12 +44,9 @@ def train_epoch(
         batch_idx % config["logger"]["log_frequency"] == 0:             
             wandb.log({"Train Loss": loss.item()})
             wandb.log({"Gradient Norm": get_grad_norm(model)})
-            wandb.log({"Learning Rate": optimizer.get_lr_scale()})
-
-        train_loss += loss.item()
-        counter += 1
+            wandb.log({"Learning Rate": optimizer._optimizer.param_groups[0]['lr']})
         
-    return train_loss / counter  
+    return train_loss / len(train_dataloader)  
 
 
 def validate_epoch(
@@ -61,7 +60,7 @@ def validate_epoch(
     device
 ):
     model.eval()
-    val_loss, counter = 0, 0
+    val_loss = 0
 
     with torch.no_grad():
         for batch_idx, batch in enumerate(val_dataloader):
@@ -74,13 +73,11 @@ def validate_epoch(
             )    
             
             loss = criterion(durations_pred, batch.durations, melspec_pred, batch.melspec)
-
+            val_loss += loss.item()
             if config["logger"]["use_wandb"] and \
             batch_idx % config["logger"]["log_frequency"] == 0:             
                 wandb.log({"Validation Loss": loss.item()})
             
-            val_loss += loss.item()
-            counter += 1
 
         if config["logger"]["use_wandb"]:
             random_idx = np.random.randint(0, batch.waveform.shape[0])
@@ -111,7 +108,7 @@ def validate_epoch(
                 )
             })
     
-    return val_loss / counter
+    return val_loss / len(val_dataloader)
 
 
 def train(

@@ -23,11 +23,10 @@ def train_epoch(
     model.train()
     train_loss, counter = 0, 0
     
-    for batch in train_dataloader:
+    for batch_idx, batch in enumerate(train_dataloader):
         batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
         durations_pred, melspec_pred = model(batch.tokens, batch.durations)
-        #durations_pred = torch.round(torch.exp(durations_pred)).float()
         melspec_pred, batch.melspec = prolong_melspecs(
             melspec_pred, batch.melspec, config, device
         )    
@@ -42,6 +41,10 @@ def train_epoch(
 
         if config["trainer"]["use_lr_scheduler"]:
             lr_scheduler.step()
+
+        if config["logger"]["use_wandb"] and \
+        batch_idx % config["logger"]["log_frequency"] == 0:             
+            wandb.log({"Train Loss": loss.item()})
 
         train_loss += loss.item()
         counter += 1
@@ -67,7 +70,6 @@ def validate_epoch(
             batch = prepare_batch(batch, melspectrogramer, aligner, device)
 
             durations_pred, melspec_pred = model.inference(batch.tokens)
-            #durations_pred = torch.round(torch.exp(durations_pred)).float()
             melspec_pred, batch.melspec = prolong_melspecs(
                 melspec_pred, batch.melspec, config, device
             )    
@@ -76,7 +78,7 @@ def validate_epoch(
 
             if config["logger"]["use_wandb"] and \
             batch_idx % config["logger"]["log_frequency"] == 0:             
-                wandb.log({"Validation loss": loss.item()})
+                wandb.log({"Validation Loss": loss.item()})
             
             val_loss += loss.item()
             counter += 1
@@ -143,7 +145,9 @@ def train(
         history_val_loss.append(val_loss)
          
         if config["logger"]["use_wandb"]:             
-            wandb.log({"Train loss": train_loss, "epoch": epoch}) 
+            wandb.log({"Epoch": epoch})
+            wandb.log({"Global Train Loss": train_loss})
+            wandb.log({"Global Validation Loss": val_loss})  
         
         if val_loss <= min(history_val_loss):
             arch = type(model).__name__

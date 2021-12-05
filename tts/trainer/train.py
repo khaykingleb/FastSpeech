@@ -44,7 +44,7 @@ def train_epoch(
         batch_idx % config["logger"]["log_frequency"] == 0:             
             wandb.log({"Train Loss": loss.item()})
             wandb.log({"Gradient Norm": get_grad_norm(model)})
-            wandb.log({"Learning Rate": optimizer._optimizer.param_groups[0]['lr']})
+            wandb.log({"Learning Rate": optimizer.optimizer.param_groups[0]['lr']})
         
     return train_loss / len(train_dataloader)  
 
@@ -153,7 +153,7 @@ def train(
                 "arch": arch,
                 "epoch": epoch,
                 "state_dict": model.state_dict(),
-                "optimizer": optimizer.state_dict(),
+                "optimizer": optimizer.optimizer.state_dict(),
                 "config": config
             }
             best_path = config["pretrained_model"]["path_to_save"] + "/best.pt"

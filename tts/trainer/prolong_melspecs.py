@@ -1,24 +1,20 @@
 import torch
-from typing import *
-
-Json = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 
 
 def prolong_melspecs(
-    melspec_pred: torch.Tensor, 
-    melspec_true: torch.Tensor,
-    config: Json,
-    device: torch.device
-) -> torch.Tensor:
+    melspec_pred, 
+    melspec_true,
+    config,
+    device
+):
     """
     Pad short spectrogramm with silence.
     """
-
     def prolong_short(
-        short_melspec: torch.Tensor, 
-        long_melspec: torch.Tensor,
-        config: Json,
-        device: torch.device
+        short_melspec, 
+        long_melspec,
+        config,
+        device
     ) -> torch.Tensor:
 
         fill_tensor = torch.ones((
@@ -32,8 +28,13 @@ def prolong_melspecs(
         return prolonged_melspec
         
     if melspec_pred.shape[2] <= melspec_true.shape[2]:
-        melspec_pred = prolong_short(melspec_pred, melspec_true, config, device)  
+        melspec_pred = prolong_short(
+            melspec_pred, melspec_true, config, device
+        )  
+
     else:
-        melspec_true = prolong_short(melspec_true, melspec_pred, config, device) 
+        melspec_true = prolong_short(
+            melspec_true, melspec_pred, config, device
+        ) 
 
     return melspec_pred, melspec_true

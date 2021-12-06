@@ -19,8 +19,8 @@ def prolong_melspecs(
         fill_tensor = torch.ones((
             short_melspec.shape[0], 
             short_melspec.shape[1], 
-            long_melspec.shape[2] - short_melspec.shape[2])
-        ).to(device) * config["preprocessing"]["spectrogram"]["args"]["pad_value"]
+            long_melspec.shape[2] - short_melspec.shape[2]
+        )).to(device) * config["preprocessing"]["spectrogram"]["args"]["pad_value"]
 
         prolonged_melspec = torch.cat([short_melspec, fill_tensor], dim=2)
 

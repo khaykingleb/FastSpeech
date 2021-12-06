@@ -72,7 +72,6 @@ class Attention(nn.Module):
             query: tensor with shape of (batch_size, seq_len, hidden_size)
             key: tensor with shape of (batch_size, seq_len, hidden_size)
             value: tensor with shape of (batch_size, seq_len, hidden_size)
-            mask: tensor with shape of (batch_size, seq_len) ???
         
         Returns: 
             out: tensor with shape of (batch_size, seq_len, hidden_size // 2)
@@ -154,7 +153,7 @@ class FFTBlock(nn.Module):
             x: tensor of shape (batch_size, seq_len, emded_size)
 
         Returns:
-            
+            out: tensor of shape (batch_size, seq_len, emded_size)
         """
         out = self.multi_head_attention(self.layer_norm_1(x)) + x
         out = self.conv(self.layer_norm_2(out).permute(0, 2, 1)).permute(0, 2, 1) + out

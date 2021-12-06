@@ -10,6 +10,8 @@
 
 ## Notebook
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/khaykingleb/Text-to-Speech/blob/main/notebooks/notebook.ipynb)
+
 
 ## Getting Started
 

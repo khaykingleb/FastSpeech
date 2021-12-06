@@ -285,6 +285,7 @@ class FastSpeech(nn.Module):
         """
         Params: 
             x: tensor of shape (batch_size, seq_len)
+            alpha: parameter that regulates the speed of the speech
 
         Returns:
             durations_pred: tensor with shape of (batch_size, seq_len_student)

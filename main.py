@@ -72,7 +72,7 @@ def main(config):
     vocoder = WaveGlow().eval().to(device)
     aligner = GraphemeAligner(config).eval().to(device)
     melspectrogramer = MelSpectrogram(config).to(device)
-
+    
     model = FastSpeech(config).to(device)
     criterion = FastSpeechMSELoss()
 

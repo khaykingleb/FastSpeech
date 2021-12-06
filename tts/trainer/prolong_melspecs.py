@@ -7,9 +7,8 @@ def prolong_melspecs(
     config,
     device
 ):
-    """
-    Pad short spectrogramm with silence.
-    """
+    """ Pad short spectrogramm with silence. """
+    
     def prolong_short(
         short_melspec, 
         long_melspec,

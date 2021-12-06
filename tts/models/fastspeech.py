@@ -34,7 +34,6 @@ class DurationPredictor(nn.Module):
             nn.Linear(hidden_size, 1)
         )
 
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -43,7 +42,6 @@ class DurationPredictor(nn.Module):
         Returns: 
             out: tensor with shape of (batch_size, seq_len)
         """
-
         for idx, operation in enumerate(self.duration_predictor):
             if idx == 0 or idx == 4:
                 x = operation(x.permute(0, 2, 1)).permute(0, 2, 1)
@@ -57,9 +55,9 @@ class DurationPredictor(nn.Module):
 
 class Attention(nn.Module):
 
-
     def __init__(self, num_heads: int, hidden_size: int, dropout: float):
         super().__init__()
+
         attention_size = hidden_size // num_heads
 
         self.W_Q = nn.Linear(hidden_size, attention_size)
@@ -68,7 +66,6 @@ class Attention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
     
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -92,9 +89,7 @@ class Attention(nn.Module):
         
 
 class MultiHeadAttention(nn.Module):
-    """
-    Based on https://arxiv.org/pdf/1706.03762.pdf
-    """
+    """ Based on https://arxiv.org/pdf/1706.03762.pdf """
 
     def __init__(self, num_heads: int, hidden_size: int, dropout: float):
         super().__init__()
@@ -105,7 +100,6 @@ class MultiHeadAttention(nn.Module):
         
         self.linear = nn.Linear(hidden_size, hidden_size)
     
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
@@ -123,15 +117,17 @@ class MultiHeadAttention(nn.Module):
 class FFTBlock(nn.Module):
 
     def __init__(
-            self, 
-            num_heads: int,
-            hidden_size: int,  
-            kernel_size: int,
-            dropout: float
-        ):
+        self, 
+        num_heads: int,
+        hidden_size: int,  
+        kernel_size: int,
+        dropout: float
+    ):
         super().__init__()
         
-        self.multi_head_attention = MultiHeadAttention(num_heads, hidden_size, dropout)
+        self.multi_head_attention = MultiHeadAttention(
+            num_heads, hidden_size, dropout
+        )
         
         self.conv = nn.Sequential(
             nn.Conv1d(
@@ -151,7 +147,6 @@ class FFTBlock(nn.Module):
 
         self.layer_norm_1 = nn.LayerNorm(hidden_size)
         self.layer_norm_2 = nn.LayerNorm(hidden_size)
-    
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -168,22 +163,21 @@ class FFTBlock(nn.Module):
         
 
 class PositionalEncoding(nn.Module):
-    """
-    Got from https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-    """
+    """ Got from https://pytorch.org/tutorials/beginner/transformer_tutorial.html """
 
     def __init__(self, embed_size: int, max_len: int, dropout: float):
         super().__init__()
         
         position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, embed_size, 2) * (-np.log(10000.0) / embed_size))
+        div_term = torch.exp(
+            torch.arange(0, embed_size, 2) * (-np.log(10000.0) / embed_size)
+        )
         positional_encoding = torch.zeros(max_len, 1, embed_size)
         positional_encoding[:, 0, 0::2] = torch.sin(position * div_term)
         positional_encoding[:, 0, 1::2] = torch.cos(position * div_term)
         self.register_buffer('positional_encoding', positional_encoding)
 
         self.dropout = nn.Dropout(dropout)
-    
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -200,7 +194,6 @@ class PositionalEncoding(nn.Module):
 
 
 class FastSpeech(nn.Module):
-
 
     def __init__(self, config):
         super().__init__()
@@ -242,7 +235,6 @@ class FastSpeech(nn.Module):
             args_config["n_mels"]
         )
 
-
     def length_regulator(
         self, 
         x: torch.Tensor, 
@@ -261,14 +253,14 @@ class FastSpeech(nn.Module):
         durations = torch.round(durations * alpha).int()
 
         x_extended = []
-
         for i in range(x.shape[0]):
-            x_extended.append(x[i, :, :].repeat_interleave(durations[i, :], dim=0))
+            x_extended.append(
+                x[i, :, :].repeat_interleave(durations[i, :], dim=0)
+            )
 
         x_extended = pad_sequence(x_extended).transpose(0, 1)
 
         return x_extended
-        
 
     def forward(self, x: torch.Tensor, durations_teacher: torch.Tensor) -> Tuple[torch.Tensor]:
         """
@@ -289,8 +281,7 @@ class FastSpeech(nn.Module):
 
         return durations_pred, melspec_pred
 
-
-    def inference(self, x: torch.Tensor) -> torch.Tensor:
+    def inference(self, x: torch.Tensor, alpha=1.0) -> torch.Tensor:
         """
         Params: 
             x: tensor of shape (batch_size, seq_len)
@@ -304,7 +295,7 @@ class FastSpeech(nn.Module):
 
         # Prediction of durations is presented in logarithmic scale
         durations_pred = torch.exp(durations_pred)
-        out = self.length_regulator(out, durations_pred)
+        out = self.length_regulator(out, durations_pred, alpha)
         out = self.decoder(self.positional_encoding(out))
 
         melspec_pred = self.linear(out).permute(0, 2, 1)

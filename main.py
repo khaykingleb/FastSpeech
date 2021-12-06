@@ -92,8 +92,8 @@ def main(config):
         if config["main"]["verbose"]:
             print("Downloading the pretrained model.")
         checkpoint = torch.load(config["pretrained_model"]["checkpoint_path"])
-        model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optim_state_dict"])  
+        model.load_state_dict(checkpoint["state_dict"])
+        optimizer.optimizer.load_state_dict(checkpoint["optimizer"])  
     
     if config["logger"]["use_wandb"]:
         wandb.watch(model)

@@ -69,9 +69,7 @@ class Attention(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Params:
-            query: tensor with shape of (batch_size, seq_len, hidden_size)
-            key: tensor with shape of (batch_size, seq_len, hidden_size)
-            value: tensor with shape of (batch_size, seq_len, hidden_size)
+            x: tensor with shape of (batch_size, seq_len, hidden_size)
         
         Returns: 
             out: tensor with shape of (batch_size, seq_len, hidden_size // 2)
